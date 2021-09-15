@@ -124,26 +124,18 @@ namespace NtierDemo.DataAccess.Concrete.AdoNet
                         string[] booksColumnNames = new string[] { "title", "relase_year" };
                         string[] values = new string[] { book.Title, book.RelaseYear };
 
-                        try
-                        {
-                            connection.Open();
-                            command.CommandText = $"{_queryHelper.Insert("books", booksColumnNames, values)}; SELECT COUNT(*) FROM books";
-                            book.BookId = Convert.ToInt32(command.ExecuteScalar());
 
-                            command.CommandText = $"{_queryHelper.Insert("authors_books", $"{book.Author.Id}, {book.BookId}")}";
+                        connection.Open();
+                        command.CommandText = $"{_queryHelper.Insert("books", booksColumnNames, values)}; SELECT COUNT(*) FROM books";
+                        book.BookId = Convert.ToInt32(command.ExecuteScalar());
+
+                        command.CommandText = $"{_queryHelper.Insert("authors_books", $"{book.Author.Id}, {book.BookId}")}";
+                        command.ExecuteNonQuery();
+
+                        foreach (BookType bookType in book.Types)
+                        {
+                            command.CommandText = $"{_queryHelper.Insert("books_types", $"{book.BookId}, {bookType.TypeId}")}";
                             command.ExecuteNonQuery();
-
-                            foreach (BookType bookType in book.Types)
-                            {
-                                command.CommandText = $"{_queryHelper.Insert("books_types", $"{book.BookId}, {bookType.TypeId}")}";
-                                command.ExecuteNonQuery();
-                            }
-                        }
-
-                        catch (Exception)
-                        {
-                            connection.Close();
-                            return;
                         }
                     }
                     connection.Close();
